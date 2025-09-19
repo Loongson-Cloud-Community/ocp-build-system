@@ -34,3 +34,4 @@ RUN  apt-get update &&\
 	curl &&\
     rm -rf /var/lib/apt/lists/* 
 
+ENV CI_DOCKER=true
