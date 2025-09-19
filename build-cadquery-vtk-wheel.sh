@@ -1,12 +1,19 @@
 #/bin/bash
-set -eu
+set -euo pipefail
 
-PYTHONUTF8=1
-VTK=${VTK:-9.3.1}
-VTK_MAJOR=${VTK_MAJOR:-9.3}
+if [[ -z "${CI_DOCKER:-}" ]]; then
+    PYTHONUTF8=1
+    VTK=${VTK:-9.3.1}
+    VTK_MAJOR=${VTK_MAJOR:-9.3}
 
-PYTHON_BIN=${PYTHON_BIN:-python3.13}
-VENV_DIR=${VENV_DIR:-.build-vtk}
+    PYTHON_BIN=${PYTHON_BIN:-python3.13}
+    VENV_DIR=${VENV_DIR:-.build-vtk}
+    echo "Local run: set VTK=$VTK, VTK_MAJOR=$VTK_MAJOR, PYTHON_BIN=$PYTHON_BIN, VENV_DIR=$VENV_DIR"
+    apt-get update && apt-get install -y git
+else
+# Using ghcr.io/loongson-cloud-community/cadquery-vtk-py313-build-base
+    echo "CI/Docker run: CI_DOCKER is set ($CI_DOCKER)"
+fi
 
 # Dowload ocp-build-system sources
 git clone https://github.com/CadQuery/ocp-build-system.git
@@ -33,8 +40,10 @@ source $VENV_DIR/bin/activate
 
 pip install --upgrade --no-cache-dir pip wheel build setuptools
 
+if [[ -z "${CI_DOCKER:-}" ]]; then
 # Debian Deps
-apt install -y build-essential cmake mesa-common-dev mesa-utils freeglut3-dev python3-dev python3-venv git-core ninja-build wget libglvnd0 libglvnd-dev curl
+    apt-get install -y build-essential cmake mesa-common-dev mesa-utils freeglut3-dev git-core ninja-build wget libglvnd0 libglvnd-dev curl
+fi
 
 # Download VTK sources
 curl -L -O https://vtk.org/files/release/$VTK_MAJOR/VTK-$VTK.tar.gz
