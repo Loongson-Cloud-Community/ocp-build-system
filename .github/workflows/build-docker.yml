@@ -9,6 +9,12 @@ on:
       push:
         required: false
         default: 'true'
+      vtk:
+        required: true
+        default: '9.3.1'
+      vtk_major:
+        required: true
+        default: '9.3'
 
 jobs:
   build:
@@ -39,8 +45,14 @@ jobs:
           file: docker/Dockerfile
           platforms: linux/loong64
           push: ${{ github.event.inputs.push }}
+          build-args: |
+            vtk=${{ github.event.inputs.vtk }}
+            vtk_major=${{ github.event.inputs.vtk_major }}
+            python_bin=python3.13
+            venv_dir=.build-vtk
           tags: |
             ghcr.io/loongson-cloud-community/cadquery-vtk-py313-build-base:latest
+            ghcr.io/loongson-cloud-community/cadquery-vtk-py313-build-base:${{ github.event.inputs.vtk }}
           outputs: type=image,oci-mediatypes=true,compression=zstd,compression-level=3,force-compression=true
           cache-from: type=gha
           cache-to: type=gha,mode=max
